@@ -32,7 +32,13 @@ public class CourseCategoryServiceImpl implements CourseCategoryService {
         List<CourseCategoryTreeDto> categoryTreeDtos=this.courseCategoryMapper.selectTreeNodes();
         List<CourseCategoryTreeDto> cateforyList= categoryTreeDtos.stream().
                 filter(t -> t.getParentid().equals(id)).
-                peek(t->t.setChildrenTreeNodes(findNode(t,categoryTreeDtos))).
+                peek(t->
+                        {
+                            List<CourseCategory> node = findNode(t, categoryTreeDtos);
+                            if(node.size()>0){t.setChildrenTreeNodes(node);}
+                            else{t.setChildrenTreeNodes(null);}
+                        }
+                ).
                 collect(Collectors.toList());
 
         return cateforyList;
@@ -41,7 +47,11 @@ public class CourseCategoryServiceImpl implements CourseCategoryService {
     private List<CourseCategory> findNode(CourseCategoryTreeDto courseCategoryTreeDto, List<CourseCategoryTreeDto> categoryTreeDtos){
         return categoryTreeDtos.stream().
                 filter(t->t.getParentid().equals(courseCategoryTreeDto.getId()))
-                .peek(t->t.setChildrenTreeNodes(findNode(t,categoryTreeDtos))).
+                .peek(t->{
+                    List<CourseCategory> node = findNode(t, categoryTreeDtos);
+                    if(node.size()>1){t.setChildrenTreeNodes(node);}
+                    else{t.setChildrenTreeNodes(null);}
+                }).
                 collect(Collectors.toList());
     }
 
